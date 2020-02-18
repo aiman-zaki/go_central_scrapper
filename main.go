@@ -10,7 +10,7 @@ import (
 	"context"
 	"log"
 
-	models "go_icress_scrapper/models"
+	models "github.com/aiman-zaki/go_icress_scrapper/models"
 
 	"github.com/gocolly/colly"
 	"go.mongodb.org/mongo-driver/bson"

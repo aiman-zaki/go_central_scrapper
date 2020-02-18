@@ -1,4 +1,4 @@
-module go_icress_scrapper
+module github.com/aiman-zaki/go_icress_scrapper
 
 go 1.13
 

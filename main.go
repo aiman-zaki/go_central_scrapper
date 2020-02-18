@@ -66,6 +66,39 @@ func fetchFaculties() []models.Faculty {
 	return faculties
 }
 
+func fetchCourses(f models.Faculty) models.Faculty {
+	var courses []models.Course
+	var URL = "http://icress.uitm.edu.my/jadual/" + f.Code + "/" + f.Code + ".html"
+	c := colly.NewCollector(
+		colly.AllowedDomains("icress.uitm.edu.my"),
+	)
+
+	c.Limit(&colly.LimitRule{
+		DomainGlob:  "*icress.*",
+		Parallelism: 2,
+		RandomDelay: 5 * time.Second,
+	})
+
+	c.OnHTML("a", func(e *colly.HTMLElement) {
+		course := models.Course{}
+		course.Code = e.Text
+		course.Timetables = fetchTimetables(f.Code, course.Code)
+		courses = append(courses, course)
+		f.Courses = courses
+	})
+	c.OnRequest(func(r *colly.Request) {
+		fmt.Println("Visiting", r.URL.String())
+	})
+	c.OnError(func(r *colly.Response, err error) {
+		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+	})
+	c.Visit(URL)
+
+	c.Wait()
+	return f
+
+}
+
 func fetchTimetables(faculty string, course string) []models.Timetable {
 	var URL = "http://icress.uitm.edu.my/jadual/" + faculty + "/" + course + ".html"
 	var timetables []models.Timetable
@@ -109,39 +142,6 @@ func fetchTimetables(faculty string, course string) []models.Timetable {
 	})
 	c.Visit(URL)
 	return timetables
-
-}
-
-func fetchCourses(f models.Faculty) models.Faculty {
-	var courses []models.Course
-	var URL = "http://icress.uitm.edu.my/jadual/" + f.Code + "/" + f.Code + ".html"
-	c := colly.NewCollector(
-		colly.AllowedDomains("icress.uitm.edu.my"),
-	)
-
-	c.Limit(&colly.LimitRule{
-		DomainGlob:  "*icress.*",
-		Parallelism: 2,
-		RandomDelay: 5 * time.Second,
-	})
-
-	c.OnHTML("a", func(e *colly.HTMLElement) {
-		course := models.Course{}
-		course.Code = e.Text
-		course.Timetables = fetchTimetables(f.Code, course.Code)
-		courses = append(courses, course)
-		f.Courses = courses
-	})
-	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL.String())
-	})
-	c.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
-	})
-	c.Visit(URL)
-
-	c.Wait()
-	return f
 
 }
 

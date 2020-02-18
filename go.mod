@@ -1,4 +1,4 @@
-module go_scrapper
+module go_icress_scrapper
 
 go 1.13
 
